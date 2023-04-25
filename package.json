@@ -1,0 +1,46 @@
+{
+  "name": "hotel-website-rheingold-be",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon -r dotenv/config -e js ./src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pietrek1989/hotel-website-rheingold-be.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pietrek1989/hotel-website-rheingold-be/issues"
+  },
+  "homepage": "https://github.com/Pietrek1989/hotel-website-rheingold-be#readme",
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.22",
+    "cross-env": "^7.0.3"
+  },
+  "dependencies": {
+    "mongoose": "^7.0.5",
+    "cloudinary": "^1.36.1",
+    "query-to-mongo": "^0.10.2",
+    "pdfmake": "^0.2.7",
+    "express": "^4.18.2",
+    "express-list-endpoints": "^6.0.0",
+    "express-validator": "^7.0.1",
+    "fs-extra": "^11.1.1",
+    "http-errors": "^2.0.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.0",
+    "bcrypt": "^5.1.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "socket.io": "^4.6.1"
+  }
+}
