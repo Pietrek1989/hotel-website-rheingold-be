@@ -2,48 +2,16 @@ import express from "express";
 import createError from "http-errors";
 import UsersModel from "./model.js";
 import ReservationsModel from "../reservations/model.js";
-import { createAccessToken } from "../../lib/auth/tools.js";
+import {
+  createAccessToken,
+  createTokens,
+  verifyAndRefreshTokens,
+} from "../../lib/auth/jwtTokens.js";
 import passport from "passport";
 import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 import { jwtAuth } from "../../lib/auth/jwtAuth.js";
 
 const usersRouter = express.Router();
-
-usersRouter.post("/register", async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    const existingUser = await UsersModel.findOne({ email });
-    if (existingUser) {
-      return next(createError(400, "Email already in use"));
-    }
-
-    const newUser = await UsersModel.create(req.body);
-    await newUser.save();
-
-    res.send({ newUser });
-  } catch (error) {
-    next(error);
-  }
-});
-usersRouter.post("/login", async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await UsersModel.checkCredentials(email, password);
-
-    if (user) {
-      const payload = { _id: user._id, role: user.role };
-      const accessToken = await createAccessToken(payload);
-
-      res.send({ accessToken });
-    } else {
-      next(createError(401, "Credentials are not ok!"));
-    }
-  } catch (error) {
-    next(error);
-  }
-});
 
 usersRouter.get(
   "/googlelogin",
@@ -64,7 +32,7 @@ usersRouter.get(
   }
 );
 
-usersRouter.get("/", adminOnlyMiddleware, jwtAuth, async (req, res, next) => {
+usersRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
   try {
     const users = await UsersModel.find();
     res.send(users);
@@ -109,11 +77,69 @@ usersRouter.get("/me/chats", jwtAuth, async (req, res, next) => {
     next(error);
   }
 });
+usersRouter.post("/account", async (req, res, next) => {
+  try {
+    const { email } = req.body;
 
+    const existingUser = await UsersModel.findOne({ email });
+    if (existingUser) {
+      return next(createError(400, "Email already in use"));
+    }
+
+    const newUser = await UsersModel.create(req.body);
+    await newUser.save();
+
+    res.send({ newUser });
+  } catch (error) {
+    next(error);
+  }
+});
+usersRouter.post("/session", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UsersModel.checkCredentials(email, password);
+    if (user) {
+      const { accessToken, refreshToken } = await createTokens(user);
+      res.send({ accessToken, refreshToken });
+    } else {
+      next(createHttpError(401, "Invalid credentials"));
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.delete("/session", jwtAuth, async (req, res, next) => {
+  try {
+    const user = await UsersModel.findByIdAndUpdate(
+      req.user._id,
+      {
+        refreshToken: "",
+      },
+      { new: true }
+    );
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.post("/session/refresh", jwtAuth, async (req, res, next) => {
+  try {
+    const { currentRefreshToken } = req.body;
+    const { accessToken, refreshToken } = await verifyAndRefreshTokens(
+      currentRefreshToken
+    );
+    res.send({ accessToken, refreshToken });
+  } catch (error) {
+    next(error);
+  }
+});
 usersRouter.get(
   "/:userId",
-  adminOnlyMiddleware,
   jwtAuth,
+  adminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const user = await UsersModel.findById(req.params.userId);
@@ -128,22 +154,27 @@ usersRouter.get(
   }
 );
 
-usersRouter.put("/:userId", jwtAuth, async (req, res, next) => {
-  try {
-    const updatedUser = await UsersModel.findByIdAndUpdate(
-      req.params.userId,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (updatedUser) {
-      res.send(updatedUser);
-    } else {
-      next(createError(404, `User with id ${req.params.userId} not found!`));
+usersRouter.put(
+  "/:userId",
+  jwtAuth,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const updatedUser = await UsersModel.findByIdAndUpdate(
+        req.params.userId,
+        req.body,
+        { new: true, runValidators: true }
+      );
+      if (updatedUser) {
+        res.send(updatedUser);
+      } else {
+        next(createError(404, `User with id ${req.params.userId} not found!`));
+      }
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 usersRouter.delete(
   "/:userId",

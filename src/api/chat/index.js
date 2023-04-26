@@ -1,6 +1,6 @@
 import express from "express";
 import ChatsModel from "./model.js";
-import { jwtAuth } from "../../lib/tools.js";
+import { jwtAuth } from "../../lib/auth/jwtAuth.js";
 import createHttpError from "http-errors";
 import { io } from "../../server.js";
 let users = [];

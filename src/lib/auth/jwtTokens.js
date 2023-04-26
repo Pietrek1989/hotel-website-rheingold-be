@@ -1,11 +1,13 @@
+import createHttpError from "http-errors";
 import jwt from "jsonwebtoken";
+import UsersModel from "../../api/users/model.js";
 
 export const createAccessToken = (payload) =>
   new Promise((resolve, reject) =>
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "15m" },
+      { expiresIn: "1d" },
       (err, token) => {
         if (err) reject(err);
         else resolve(token);
@@ -44,8 +46,14 @@ export const verifyRefreshToken = (token) =>
 
 export const createTokens = async (user) => {
   console.log(user);
-  const accessToken = await createAccessToken({ _id: user._id });
-  const refreshToken = await createRefreshToken({ _id: user._id });
+  const accessToken = await createAccessToken({
+    _id: user._id,
+    role: user.role,
+  });
+  const refreshToken = await createRefreshToken({
+    _id: user._id,
+    role: user.role,
+  });
 
   user.refreshToken = refreshToken;
   await user.save();
@@ -55,11 +63,11 @@ export const createTokens = async (user) => {
 
 export const verifyAndRefreshTokens = async (currentRefreshToken) => {
   try {
-    console.log("bla", currentRefreshToken);
+    console.log("refreshToken", currentRefreshToken);
     const { _id } = await verifyRefreshToken(currentRefreshToken);
-    console.log(_id);
+    console.log("id", _id);
     const user = await UsersModel.findById(_id);
-    console.log(user);
+    console.log("user", user);
     if (!user) throw new createHttpError(404, `User with id ${_id} not found.`);
     if (user.refreshToken && user.refreshToken === currentRefreshToken) {
       const { accessToken, refreshToken } = await createTokens(user);

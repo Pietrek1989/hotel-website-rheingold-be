@@ -1,7 +1,6 @@
 import express from "express";
 import createError from "http-errors";
 import ReservationsModel from "./model.js";
-import ReservationsModel from "../reservations/model.js";
 import { jwtAuth } from "../../lib/auth/jwtAuth.js";
 import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 
@@ -30,20 +29,6 @@ reservationsRouter.get(
     }
   }
 );
-
-reservationsRouter.get("/me/reservations", jwtAuth, async (req, res, next) => {
-  try {
-    const reservationID = req.reservation._id;
-
-    const reservationsByReservation = await ReservationsModel.find({
-      reservation: reservationID,
-    }).populate("reservation");
-
-    res.send(reservationsByReservation);
-  } catch (error) {
-    next(error);
-  }
-});
 
 reservationsRouter.get(
   "/:reservationId",
