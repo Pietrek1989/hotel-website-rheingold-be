@@ -3,6 +3,7 @@ import ChatsModel from "./model.js";
 import { jwtAuth } from "../../lib/auth/jwtAuth.js";
 import createHttpError from "http-errors";
 import { io } from "../../server.js";
+import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 let users = [];
 
 export const newConnectionHandler = (socket) => {
@@ -55,11 +56,10 @@ export const newConnectionHandler = (socket) => {
 
 const chatsRouter = express.Router();
 
-chatsRouter.get("/", jwtAuth, async (req, res, next) => {
+chatsRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    const chats = await ChatsModel.find({ members: userId })
-      .populate("members", "name email avatar")
+    const chats = await ChatsModel.find()
+      .populate("members", "name surname ")
       .select("-messages");
     if (chats) {
       res.status(200).send(chats);
@@ -73,7 +73,7 @@ chatsRouter.get("/", jwtAuth, async (req, res, next) => {
 
 chatsRouter.post("/", jwtAuth, async (req, res, next) => {
   try {
-    const { recipientId } = req.body;
+    const recipientId = "6448debc82ef38f56f639a4c";
     const senderId = req.user._id;
 
     const existingChat = await ChatsModel.findOne({
@@ -101,7 +101,7 @@ chatsRouter.get("/:id", jwtAuth, async (req, res, next) => {
 
     const chat = await ChatsModel.findOne({ _id: chatId }).populate(
       "members messages.sender",
-      "name email avatar"
+      "name surname "
     );
     if (!chat) {
       return next(createError(404, "Chat not found"));

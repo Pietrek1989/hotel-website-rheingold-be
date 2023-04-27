@@ -6,7 +6,7 @@ import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 
 const offersRouter = express.Router();
 
-offersRouter.post("/", adminOnlyMiddleware, jwtAuth, async (req, res, next) => {
+offersRouter.post("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
   try {
     const newOffer = new OffersModel(req.body);
     const { _id } = await newOffer.save();
@@ -16,7 +16,7 @@ offersRouter.post("/", adminOnlyMiddleware, jwtAuth, async (req, res, next) => {
   }
 });
 
-offersRouter.get("/", adminOnlyMiddleware, jwtAuth, async (req, res, next) => {
+offersRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
   try {
     const offers = await OffersModel.find();
     res.send(offers);
@@ -27,8 +27,8 @@ offersRouter.get("/", adminOnlyMiddleware, jwtAuth, async (req, res, next) => {
 
 offersRouter.get(
   "/:offerId",
-  adminOnlyMiddleware,
   jwtAuth,
+  adminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const offer = await OffersModel.findById(req.params.offerId);
@@ -47,8 +47,8 @@ offersRouter.get(
 
 offersRouter.put(
   "/:offerId",
-  adminOnlyMiddleware,
   jwtAuth,
+  adminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const updatedOffer = await OffersModel.findByIdAndUpdate(
@@ -71,8 +71,8 @@ offersRouter.put(
 
 offersRouter.delete(
   "/:offerId",
-  adminOnlyMiddleware,
   jwtAuth,
+  adminOnlyMiddleware,
   async (req, res, next) => {
     try {
       const deletedOffer = await OffersModel.findByIdAndDelete(

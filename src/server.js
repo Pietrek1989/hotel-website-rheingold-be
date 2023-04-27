@@ -18,6 +18,7 @@ import { googleStrategy } from "./lib/auth/googleOAuth.js";
 import chatsRouter from "./api/chat/index.js";
 import reservationsRouter from "./api/reservations/index.js";
 import listEndpoints from "express-list-endpoints";
+import offersRouter from "./api/offfer/index.js";
 
 const server = Express();
 const port = process.env.PORT || 3420;
@@ -44,7 +45,8 @@ server.use(passport.initialize());
 
 server.use("/users", usersRouter);
 server.use("/chats", chatsRouter);
-server.use("/reservation", reservationsRouter);
+server.use("/reservations", reservationsRouter);
+server.use("/offers", offersRouter);
 
 server.use(badRequestHandler);
 server.use(unauthorizedHandler);
