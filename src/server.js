@@ -19,6 +19,8 @@ import chatsRouter from "./api/chat/index.js";
 import reservationsRouter from "./api/reservations/index.js";
 import listEndpoints from "express-list-endpoints";
 import offersRouter from "./api/offfer/index.js";
+import cron from "node-cron";
+import removeExpiredReservations from "./cronExpire.js";
 
 const server = Express();
 const port = process.env.PORT || 3420;
@@ -59,6 +61,9 @@ export const io = new Server(httpServer);
 io.on("connection", newConnectionHandler);
 
 mongoose.connect(process.env.MONGO_URL);
+
+// const cronExpression = "0 0 * * *"; // Run the job every day at 00:00
+// cron.schedule(cronExpression, removeExpiredReservations);
 
 mongoose.connection.on("connected", () => {
   httpServer.listen(port, () => {

@@ -8,6 +8,8 @@ const offerSchema = new Schema(
     priceSeason: { type: Number, required: true },
     priceOffSeason: { type: Number, required: true },
     image: { type: String, required: true },
+    details: [{ type: String }],
+    reservations: [{ type: Schema.Types.ObjectId, ref: "Reservation" }],
   },
   {
     timestamps: true,

@@ -16,9 +16,12 @@ offersRouter.post("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
   }
 });
 
-offersRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
+offersRouter.get("/", async (req, res, next) => {
   try {
-    const offers = await OffersModel.find();
+    const offers = await OffersModel.find().populate({
+      path: "reservations",
+      select: "content.checkin content.checkout",
+    });
     res.send(offers);
   } catch (error) {
     next(error);
@@ -31,7 +34,10 @@ offersRouter.get(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const offer = await OffersModel.findById(req.params.offerId);
+      const offer = await OffersModel.findById(req.params.offerId).populate({
+        path: "reservations",
+        select: "content.checkin content.checkout",
+      });
       if (offer) {
         res.send(offer);
       } else {
