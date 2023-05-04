@@ -37,7 +37,6 @@ reservationsRouter.post("/", jwtAuth, async (req, res, next) => {
       user: userId,
     });
     const { _id, content } = await newReservation.save();
-    console.log("Offer ID from request:", content.offer);
 
     await UsersModel.findOneAndUpdate(
       { _id: userId },
@@ -51,7 +50,7 @@ reservationsRouter.post("/", jwtAuth, async (req, res, next) => {
     );
     console.log("Updated offer:", updatedOffer);
 
-    res.status(201).send({ _id });
+    res.status(201).send(newReservation);
   } catch (error) {
     next(error);
   }
@@ -66,30 +65,25 @@ reservationsRouter.get("/", async (req, res, next) => {
   }
 });
 
-reservationsRouter.get(
-  "/:reservationId",
-  jwtAuth,
-  adminOnlyMiddleware,
-  async (req, res, next) => {
-    try {
-      const reservation = await ReservationsModel.findById(
-        req.params.reservationId
+reservationsRouter.get("/:reservationId", async (req, res, next) => {
+  try {
+    const reservation = await ReservationsModel.findById(
+      req.params.reservationId
+    ).populate("user");
+    if (reservation) {
+      res.send(reservation);
+    } else {
+      next(
+        createError(
+          404,
+          `Reservation with id ${req.params.reservationId} not found!`
+        )
       );
-      if (reservation) {
-        res.send(reservation);
-      } else {
-        next(
-          createError(
-            404,
-            `Reservation with id ${req.params.reservationId} not found!`
-          )
-        );
-      }
-    } catch (error) {
-      next(error);
     }
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 reservationsRouter.put(
   "/:reservationId",

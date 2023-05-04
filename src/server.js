@@ -21,6 +21,7 @@ import listEndpoints from "express-list-endpoints";
 import offersRouter from "./api/offfer/index.js";
 import cron from "node-cron";
 import removeExpiredReservations from "./cronExpire.js";
+import stripeRouter from "./api/payment/index.js";
 
 const server = Express();
 const port = process.env.PORT || 3420;
@@ -49,6 +50,7 @@ server.use("/users", usersRouter);
 server.use("/chats", chatsRouter);
 server.use("/reservations", reservationsRouter);
 server.use("/offers", offersRouter);
+server.use("/payments", stripeRouter);
 
 server.use(badRequestHandler);
 server.use(unauthorizedHandler);

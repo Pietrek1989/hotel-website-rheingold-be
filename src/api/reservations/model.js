@@ -10,6 +10,7 @@ const reservationSchema = new Schema(
       checkin: { type: Date, require: true },
       checkout: { type: Date, require: true },
       paid: { type: Boolean, default: false },
+      chargeId: { type: String },
       canceled: { type: Boolean, default: false },
       offer: { type: Schema.Types.ObjectId, ref: "Offer", require: true },
     },
