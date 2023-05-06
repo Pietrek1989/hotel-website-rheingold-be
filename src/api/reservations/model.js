@@ -11,6 +11,7 @@ const reservationSchema = new Schema(
       checkout: { type: Date, require: true },
       paid: { type: Boolean, default: false },
       chargeId: { type: String },
+      receiptUrl: { type: String },
       canceled: { type: Boolean, default: false },
       offer: { type: Schema.Types.ObjectId, ref: "Offer", require: true },
     },

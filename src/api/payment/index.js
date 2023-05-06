@@ -34,10 +34,15 @@ stripeRouter.post(
       );
 
       if (payment) {
-        const chargeId = payment.id;
         const updatedReservation = await ReservationsModel.findByIdAndUpdate(
           req.body._id,
-          { $set: { "content.paid": true, "content.chargeId": payment.id } },
+          {
+            $set: {
+              "content.paid": true,
+              "content.chargeId": payment.id,
+              "content.receiptUrl": payment.receipt_url,
+            },
+          },
           { new: true, runValidators: true }
         );
 
