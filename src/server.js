@@ -22,6 +22,8 @@ import offersRouter from "./api/offfer/index.js";
 import cron from "node-cron";
 import removeExpiredReservations from "./cronExpire.js";
 import stripeRouter from "./api/payment/index.js";
+import filesRouter from "./api/images/files.js";
+import imagesRouter from "./api/images/index.js";
 
 const server = Express();
 const port = process.env.PORT || 3420;
@@ -51,6 +53,8 @@ server.use("/chats", chatsRouter);
 server.use("/reservations", reservationsRouter);
 server.use("/offers", offersRouter);
 server.use("/payments", stripeRouter);
+server.use("/images", imagesRouter)
+server.use("/files", filesRouter)
 
 server.use(badRequestHandler);
 server.use(unauthorizedHandler);

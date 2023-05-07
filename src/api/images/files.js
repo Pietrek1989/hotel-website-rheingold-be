@@ -79,3 +79,5 @@ const cloudinaryUploaderGallery = multer({
           );
         }
     });
+
+    export default filesRouter;
