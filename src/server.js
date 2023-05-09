@@ -24,8 +24,16 @@ import removeExpiredReservations from "./cronExpire.js";
 import stripeRouter from "./api/payment/index.js";
 import filesRouter from "./api/images/files.js";
 import imagesRouter from "./api/images/index.js";
+import apiLimiter from "./limiter.js"
+import morgan from "morgan";
+import fs from "fs";
 
 const server = Express();
+const accessLogStream = fs.createWriteStream(process.env.LOG_FILE_PATH, { flags: 'a' });
+server.use(morgan("combined", { stream: accessLogStream }));
+/* chmod 600 access.log */ 
+server.use(apiLimiter)
+
 const port = process.env.PORT || 3420;
 const whitelist = [process.env.FE_URL, process.env.FE_PROD_URL];
 
@@ -68,8 +76,8 @@ io.on("connection", newConnectionHandler);
 
 mongoose.connect(process.env.MONGO_URL);
 
-// const cronExpression = "0 0 * * *"; // Run the job every day at 00:00
-// cron.schedule(cronExpression, removeExpiredReservations);
+const cronExpression = "0 0 * * *"; // Run the job every day at 00:00
+cron.schedule(cronExpression, removeExpiredReservations);
 
 mongoose.connection.on("connected", () => {
   httpServer.listen(port, () => {

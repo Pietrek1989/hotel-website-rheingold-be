@@ -10,6 +10,7 @@ import {
 import passport from "passport";
 import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 import { jwtAuth } from "../../lib/auth/jwtAuth.js";
+import { checkUserSchema, triggerBadRequest } from "./validation.js";
 
 const usersRouter = express.Router();
 
@@ -77,7 +78,7 @@ usersRouter.get("/me/chats", jwtAuth, async (req, res, next) => {
     next(error);
   }
 });
-usersRouter.post("/account", async (req, res, next) => {
+usersRouter.post("/account",checkUserSchema, triggerBadRequest, async (req, res, next) => {
   try {
     const { email } = req.body;
 

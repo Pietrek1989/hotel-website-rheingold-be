@@ -7,32 +7,51 @@ import UsersModel from "../users/model.js";
 import OffersModel from "../offfer/model.js";
 
 import { format, utcToZonedTime } from "date-fns-tz";
+import { checkReservationSchema, triggerBadRequest } from "./validation.js";
 
 const reservationsRouter = express.Router();
 
-reservationsRouter.post("/", jwtAuth, async (req, res, next) => {
+reservationsRouter.post("/", jwtAuth, checkReservationSchema,
+triggerBadRequest,  async (req, res, next) => {
   try {
     const userId = req.user._id;
     const hotelTimeZone = "Europe/Berlin";
     console.log(req.body);
 
+    const { checkin: rawCheckin, checkout: rawCheckout, cost, offer } = req.body.content;
+
     const checkin = format(
-      utcToZonedTime(req.body.content.checkin, hotelTimeZone),
+      utcToZonedTime(rawCheckin, hotelTimeZone),
       "yyyy-MM-dd",
       { timeZone: hotelTimeZone }
     );
     const checkout = format(
-      utcToZonedTime(req.body.content.checkout, hotelTimeZone),
+      utcToZonedTime(rawCheckout, hotelTimeZone),
       "yyyy-MM-dd",
       { timeZone: hotelTimeZone }
     );
 
+    // Find the offer by ID and populate the reservations
+    const offerData = await OffersModel.findById(offer).populate('reservations');
+
+    // Check for overlapping reservations
+    for (const reservation of offerData.reservations) {
+      if (
+        (checkin >= reservation.content.checkin && checkin <= reservation.content.checkout) ||
+        (checkout >= reservation.content.checkin && checkout <= reservation.content.checkout) ||
+        (checkin <= reservation.content.checkin && checkout >= reservation.content.checkout)
+      ) {
+        return res.status(409).send("The requested dates are not available.");
+      }
+    }
+
+    // Proceed with creating the new reservation if there are no conflicts
     const newReservation = new ReservationsModel({
-      ...req.body,
       content: {
-        ...req.body.content,
         checkin,
         checkout,
+        cost,
+        offer,
       },
       user: userId,
     });
@@ -55,6 +74,7 @@ reservationsRouter.post("/", jwtAuth, async (req, res, next) => {
     next(error);
   }
 });
+
 
 reservationsRouter.get("/", async (req, res, next) => {
   try {
