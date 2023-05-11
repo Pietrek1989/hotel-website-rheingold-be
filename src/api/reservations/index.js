@@ -78,7 +78,9 @@ triggerBadRequest,  async (req, res, next) => {
 
 reservationsRouter.get("/", async (req, res, next) => {
   try {
-    const reservations = await ReservationsModel.find();
+    const reservations = await ReservationsModel.find().sort({
+      "content.checkin": -1, 
+    });
     res.send(reservations);
   } catch (error) {
     next(error);
