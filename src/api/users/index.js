@@ -41,6 +41,14 @@ usersRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+usersRouter.get("/count", async (req, res) => {
+  try {
+    const count = await UsersModel.countDocuments({});
+    res.json(count);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 usersRouter.get("/me/info", jwtAuth, async (req, res, next) => {
   try {
@@ -52,6 +60,33 @@ usersRouter.get("/me/info", jwtAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+usersRouter.put("/me/info", jwtAuth, async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const updates = req.body; // Assume that updates are sent in the body of the request
+
+    const user = await UsersModel.findById(userId);
+
+    if (!user) {
+      return next(createError(404, "User not found"));
+    }
+
+    for (let key in updates) {
+      if (user[key] !== undefined) {
+        // only allow updating existing fields
+        user[key] = updates[key];
+      }
+    }
+
+    await user.save();
+
+    res.send({ message: "User data updated successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
 usersRouter.get("/me/reservations", jwtAuth, async (req, res, next) => {
   try {
     const userID = req.user._id;
@@ -78,23 +113,28 @@ usersRouter.get("/me/chats", jwtAuth, async (req, res, next) => {
     next(error);
   }
 });
-usersRouter.post("/account",checkUserSchema, triggerBadRequest, async (req, res, next) => {
-  try {
-    const { email } = req.body;
+usersRouter.post(
+  "/account",
+  checkUserSchema,
+  triggerBadRequest,
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
 
-    const existingUser = await UsersModel.findOne({ email });
-    if (existingUser) {
-      return next(createError(400, "Email already in use"));
+      const existingUser = await UsersModel.findOne({ email });
+      if (existingUser) {
+        return next(createError(400, "Email already in use"));
+      }
+
+      const newUser = await UsersModel.create(req.body);
+      await newUser.save();
+
+      res.send({ newUser });
+    } catch (error) {
+      next(error);
     }
-
-    const newUser = await UsersModel.create(req.body);
-    await newUser.save();
-
-    res.send({ newUser });
-  } catch (error) {
-    next(error);
   }
-});
+);
 usersRouter.post("/session", async (req, res, next) => {
   try {
     const { email, password } = req.body;

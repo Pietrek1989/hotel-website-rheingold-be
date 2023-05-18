@@ -18,6 +18,12 @@ const UsersSchema = new Schema(
     reservations: [{ type: Schema.Types.ObjectId, ref: "Reservation" }],
     refreshToken: { type: String },
     googleId: { type: String },
+    address: {
+      country: { type: String },
+      street: { type: String },
+      city: { type: String },
+      postalCode: { type: String },
+    },
   },
   {
     timestamps: true,
