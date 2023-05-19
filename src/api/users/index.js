@@ -200,17 +200,29 @@ usersRouter.put(
   jwtAuth,
   adminOnlyMiddleware,
   async (req, res, next) => {
+    await user.save();
     try {
-      const updatedUser = await UsersModel.findByIdAndUpdate(
-        req.params.userId,
-        req.body,
-        { new: true, runValidators: true }
-      );
-      if (updatedUser) {
-        res.send(updatedUser);
-      } else {
-        next(createError(404, `User with id ${req.params.userId} not found!`));
+      const userId = req.params.userId;
+      const updates = req.body; // Assume that updates are sent in the body of the request
+
+      const user = await UsersModel.findById(userId);
+
+      if (!user) {
+        return next(createError(404, "User not found"));
       }
+
+      for (let key in updates) {
+        if (user[key] !== undefined) {
+          // only allow updating existing fields
+          user[key] = updates[key];
+        }
+      }
+      await user.save();
+
+      res.send({
+        message: "User data updated successfully",
+        updatedUser: user,
+      });
     } catch (error) {
       next(error);
     }

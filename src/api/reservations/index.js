@@ -213,21 +213,35 @@ reservationsRouter.put(
   adminOnlyMiddleware,
   async (req, res, next) => {
     try {
-      const updatedReservation = await ReservationsModel.findByIdAndUpdate(
-        req.params.reservationId,
-        { ...req.body },
-        { new: true, runValidators: true }
-      );
-      if (updatedReservation) {
-        res.send(updatedReservation);
-      } else {
-        next(
-          createError(
-            404,
-            `Reservation with id ${req.params.reservationId} not found!`
-          )
-        );
+      const reservationId = req.params.reservationId;
+      const updates = req.body;
+
+      const reservation = await ReservationsModel.findById(reservationId);
+
+      if (!reservation) {
+        return next(createError(404, "Reservation not found"));
       }
+
+      for (let key in updates) {
+        if (key === "content") {
+          for (let subKey in updates.content) {
+            if (reservation.content[subKey] !== undefined) {
+              // only allow updating existing fields in content
+              reservation.content[subKey] = updates.content[subKey];
+            }
+          }
+        } else if (reservation[key] !== undefined) {
+          // only allow updating existing top-level fields
+          reservation[key] = updates[key];
+        }
+      }
+
+      await reservation.save();
+
+      res.send({
+        message: "Reservation data updated successfully",
+        updatedUser: reservation,
+      });
     } catch (error) {
       next(error);
     }
