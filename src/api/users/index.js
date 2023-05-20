@@ -93,13 +93,16 @@ usersRouter.get("/me/reservations", jwtAuth, async (req, res, next) => {
 
     const reservationsByUser = await ReservationsModel.find({
       user: userID,
-    }).populate("user");
+    })
+      .populate("content.offer")
+      .populate("user");
 
     res.send(reservationsByUser);
   } catch (error) {
     next(error);
   }
 });
+
 usersRouter.get("/me/chats", jwtAuth, async (req, res, next) => {
   try {
     const userID = req.user._id;
