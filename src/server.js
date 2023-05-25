@@ -3,7 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { newConnectionHandler } from "./api/chat/index.js";
+// import { newConnectionHandler } from "./api/chat/index.js";
 import {
   badRequestHandler,
   unauthorizedHandler,
@@ -60,7 +60,7 @@ server.use(Express.json());
 server.use(passport.initialize());
 
 server.use("/users", usersRouter);
-server.use("/chats", chatsRouter);
+// server.use("/chats", chatsRouter);
 server.use("/reservations", reservationsRouter);
 server.use("/offers", offersRouter);
 server.use("/payments", stripeRouter);
@@ -75,8 +75,8 @@ server.use(notfoundHandler);
 server.use(genericErrorHandler);
 
 const httpServer = createServer(server);
-export const io = new Server(httpServer);
-io.on("connection", newConnectionHandler);
+// export const io = new Server(httpServer);
+// io.on("connection", newConnectionHandler);
 
 mongoose.connect(process.env.MONGO_URL);
 
