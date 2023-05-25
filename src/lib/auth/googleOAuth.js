@@ -1,7 +1,7 @@
 import GoogleStrategy from "passport-google-oauth20";
 import UsersModel from "../../api/users/model.js";
 import createHttpError from "http-errors";
-import { createAccessToken } from "./jwtTokens.js";
+import { createTokens } from "./jwtTokens.js";
 
 export const googleStrategy = new GoogleStrategy(
   {
@@ -18,7 +18,8 @@ export const googleStrategy = new GoogleStrategy(
         pnext(null, { accessToken, refreshToken });
       } else {
         const newUser = await UsersModel({
-          name: given_name + " " + family_name,
+          name: given_name,
+          surname: family_name,
           email,
           googleId: sub,
         });
