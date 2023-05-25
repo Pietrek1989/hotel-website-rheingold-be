@@ -1,7 +1,6 @@
 import Express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import { Server } from "socket.io";
 import { createServer } from "http";
 // import { newConnectionHandler } from "./api/chat/index.js";
 import {
