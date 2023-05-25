@@ -9,6 +9,11 @@ import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import createHttpError from "http-errors";
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const filesRouter = Express.Router();
 
@@ -45,9 +50,16 @@ filesRouter.post(
   async (req, res, next) => {
     try {
       const imageUrl = req.file.path;
-      const image = new ImagesModel({ gallery: imageUrl });
-      await image.save();
-      res.status(201).send(image);
+      let images = await ImagesModel.findOne({});
+
+      if (!images) {
+        images = new ImagesModel({ gallery: [imageUrl] });
+      } else {
+        images.gallery.push(imageUrl);
+      }
+
+      await images.save();
+      res.status(201).send(images);
     } catch (error) {
       next(error);
     }
@@ -88,13 +100,13 @@ filesRouter.delete("/gallery", async (req, res, next) => {
     // Remove the image URL from the gallery array
     images.gallery = images.gallery.filter((imageUrl) => imageUrl !== url);
 
-    const public_id = url
-      .split("/hotel-Rheingold/gallery/")
-      .pop()
-      .split(".")[0];
+    const public_id = `hotel-Rheingold/gallery/${
+      url.split("/hotel-Rheingold/gallery/").pop().split(".")[0]
+    }`;
     console.log("Public ID: ", public_id); // log the public_id
 
-    await cloudinary.uploader.destroy(public_id);
+    let destroyResult = await cloudinary.uploader.destroy(public_id);
+    console.log(destroyResult); // Log the result of the destroy method
 
     await images.save();
 

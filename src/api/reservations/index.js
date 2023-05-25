@@ -111,22 +111,57 @@ reservationsRouter.get("/", async (req, res, next) => {
 
 reservationsRouter.get("/earningsNow", async (req, res, next) => {
   try {
+    const hotelTimeZone = "Europe/Berlin";
+
     const start = new Date();
     start.setDate(1);
     start.setHours(0, 0, 0, 0);
+    const zonedStart = format(
+      utcToZonedTime(start, hotelTimeZone),
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      { timeZone: hotelTimeZone }
+    );
 
     const end = new Date();
+    const zonedEnd = format(
+      utcToZonedTime(end, hotelTimeZone),
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+      { timeZone: hotelTimeZone }
+    );
 
     const reservations = await ReservationsModel.find({
-      "content.checkin": {
-        $gte: start,
-        $lt: end,
-      },
+      $or: [
+        {
+          "content.checkin": {
+            $gte: zonedStart,
+            $lt: zonedEnd,
+          },
+        },
+        {
+          "content.checkout": {
+            $gte: zonedStart,
+            $lt: zonedEnd,
+          },
+        },
+        {
+          "content.checkin": {
+            $lt: zonedStart,
+          },
+          "content.checkout": {
+            $gt: zonedEnd,
+          },
+        },
+      ],
       "content.paid": true,
     });
 
     const earnings = reservations.reduce((total, reservation) => {
-      return total + reservation.content.cost;
+      if (!reservation.content.canceled) {
+        console.log(`Cost of reservation: ${reservation.content.cost}`);
+
+        return total + Number(reservation.content.cost);
+      }
+      return total;
     }, 0);
 
     res.status(200).send({ earnings: earnings });
@@ -149,6 +184,7 @@ reservationsRouter.get("/totalEarnings", async (req, res, next) => {
         },
       },
     ]);
+    console.log(`Total: ${JSON.stringify(total, null, 2)}`);
 
     res.status(200).send({ totalEarnings: total[0].totalEarnings });
   } catch (err) {

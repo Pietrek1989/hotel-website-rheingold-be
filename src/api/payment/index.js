@@ -4,6 +4,7 @@ import { jwtAuth } from "../../lib/auth/jwtAuth.js";
 import uniqid from "uniqid";
 import Stripe from "stripe";
 import ReservationsModel from "../reservations/model.js";
+import { adminOnlyMiddleware } from "../../lib/auth/admin.js";
 
 const stripe = new Stripe(
   "sk_test_51N3eaCJKdMpYF5VUK9rnB6fpACgEf0WfQhsKbPfPNh4osrrAYErTPkOFsU3HEeyq7dLLl7Wg84euNLaTZg80sdBc002NC3gY4H"
@@ -71,38 +72,43 @@ stripeRouter.post(
   }
 );
 
-stripeRouter.post("/refund", jwtAuth, async (req, res, next) => {
-  try {
-    const { _id, chargeId } = req.body;
+stripeRouter.post(
+  "/refund",
+  jwtAuth,
+  adminOnlyMiddleware,
+  async (req, res, next) => {
+    try {
+      const { _id, chargeId } = req.body;
 
-    // Create a refund for the charge
-    const refund = await stripe.refunds.create({
-      charge: chargeId,
-    });
+      // Create a refund for the charge
+      const refund = await stripe.refunds.create({
+        charge: chargeId,
+      });
 
-    if (refund) {
-      // Update the reservation status in the database
-      const updatedReservation = await ReservationsModel.findByIdAndUpdate(
-        _id,
-        { $set: { "content.canceled": true } },
-        { new: true, runValidators: true }
-      );
+      if (refund) {
+        // Update the reservation status in the database
+        const updatedReservation = await ReservationsModel.findByIdAndUpdate(
+          _id,
+          { $set: { "content.canceled": true } },
+          { new: true, runValidators: true }
+        );
 
-      if (!updatedReservation) {
-        next(createError(404, `Reservation with id: ${_id} not found!`));
+        if (!updatedReservation) {
+          next(createError(404, `Reservation with id: ${_id} not found!`));
+        } else {
+          res.status(200).send({
+            message: "Refund Successful, Reservation Canceled",
+            reservation: updatedReservation,
+          });
+        }
       } else {
-        res.status(200).send({
-          message: "Refund Successful, Reservation Canceled",
-          reservation: updatedReservation,
-        });
+        next(createError(400, `Problem with refund!`));
       }
-    } else {
-      next(createError(400, `Problem with refund!`));
+    } catch (error) {
+      console.error(error);
+      next(createError(400, `Something went wrong with the refund process!`));
     }
-  } catch (error) {
-    console.error(error);
-    next(createError(400, `Something went wrong with the refund process!`));
   }
-});
+);
 
 export default stripeRouter;
