@@ -33,7 +33,7 @@ usersRouter.get(
   }
 );
 
-usersRouter.get("/", jwtAuth, adminOnlyMiddleware, async (req, res, next) => {
+usersRouter.get("/", async (req, res, next) => {
   try {
     const users = await UsersModel.find();
     res.send(users);
@@ -64,7 +64,7 @@ usersRouter.get("/me/info", jwtAuth, async (req, res, next) => {
 usersRouter.put("/me/info", jwtAuth, async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const updates = req.body; // Assume that updates are sent in the body of the request
+    const updates = req.body;
 
     const user = await UsersModel.findById(userId);
 
