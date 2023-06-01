@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -r dotenv/config -e js ./src/server.js",
-    "start": "node -r dotenv/config -e js  ./src/server.js"
+    "start": "node -e js ./src/server.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,6 @@
     "@sendgrid/mail": "^7.7.0",
     "bcrypt": "^5.1.0",
     "cloudinary": "^1.36.1",
-    "dotenv": "^16.0.3",
     "cors": "^2.8.5",
     "date-fns-tz": "^2.0.0",
     "express": "^4.18.2",
