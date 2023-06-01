@@ -83,10 +83,6 @@ const cronExpression = "0 0 * * *"; // Run the job every day at 00:00
 cron.schedule(cronExpression, removeExpiredReservations);
 
 mongoose.connection.on("connected", () => {
-  if (err) {
-    console.error(err);
-    return false;
-  }
   httpServer.listen(port, () => {
     console.table(listEndpoints(server));
     console.log(`Server is running on port ${port}`);
