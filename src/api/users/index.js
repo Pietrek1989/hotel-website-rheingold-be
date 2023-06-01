@@ -25,7 +25,7 @@ usersRouter.get(
   (req, res, next) => {
     try {
       res.redirect(
-        `${process.env.FE_URL}/main?accessToken=${req.user.accessToken}&refreshToken=${req.user.refreshToken}`
+        `${process.env.FE_URL}/?accessToken=${req.user.accessToken}&refreshToken=${req.user.refreshToken}`
       );
     } catch (error) {
       next(error);

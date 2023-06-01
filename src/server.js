@@ -36,7 +36,6 @@ const server = Express();
 /* chmod 600 access.log */
 // server.use(apiLimiter)
 
-const port = process.env.PORT || 3420;
 const whitelist = [process.env.FE_URL, process.env.FE_PROD_URL];
 
 passport.use("google", googleStrategy);
@@ -85,6 +84,5 @@ cron.schedule(cronExpression, removeExpiredReservations);
 mongoose.connection.on("connected", () => {
   httpServer.listen(port, () => {
     console.table(listEndpoints(server));
-    console.log(`Server is running on port ${port}`);
   });
 });
