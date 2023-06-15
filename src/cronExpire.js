@@ -16,6 +16,11 @@ const removeExpiredReservations = async () => {
       { $pull: { reservations: reservation._id } }
     );
   });
+
+  // Delete expired reservations
+  await ReservationsModel.deleteMany({
+    "content.checkout": { $lt: currentDate },
+  });
 };
 
 export default removeExpiredReservations;
